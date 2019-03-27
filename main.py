@@ -1,9 +1,10 @@
-from requests import get
+from requests import get, Session
 from bs4 import BeautifulSoup as bs
 from fake_useragent import UserAgent
 from json import loads
 from pymysql import connect
 from re import search
+from requests.adapters import HTTPAdapter
 
 # 构造随机请求头
 header = {"User-Agent": UserAgent().random}
@@ -13,7 +14,7 @@ db = connect("localhost", "root", "o9ptZVkJib9p", "zhilian")
 cursor = db.cursor()
 
 
-def work_crawler():
+def zhilian_crawler():
     zhilian_url = "https://www.zhaopin.com/nanning/"
     zhilian_get = get(zhilian_url, headers=header)
     zhilian_bs = bs(zhilian_get.text, features="html.parser")
@@ -68,5 +69,93 @@ def work_crawler():
                     print(job_info)
 
 
+def crawler_51_iob():
+    page = 1
+    while True:
+        job_51_url = "https://jobs.51job.com/nanning/p{}".format(page)
+        job_51_get = get(job_51_url, headers=header)
+        job_51_bs = bs(job_51_get.text, features="html.parser")
+        posistion_block = job_51_bs.select('.detlist .e')
+        if len(posistion_block) == 0:
+            return
+        for posistion in posistion_block:
+            job_name = posistion.select_one("span a")['title']  # 职位名称
+            company_name = posistion.select_one(".name")['title']  # 公司名称
+            if search("'", company_name):
+                company_name = company_name.replace("'", '')
+            city = posistion.select_one("span.name").text  # 城市
+            salary = posistion.select("span.location")[-1].text  # 工资
+            order = posistion.select_one("p.order").text
+            edu_level = order[order.index('学历要求') + 5:order.index("工作经验") - 1]  # 学历要求
+            working_exp = order[order.index('工作经验') + 5:order.index("公司性质") - 1].replace("-", '至')  # 工作经验
+            company_type = order[order.index('公司性质') + 5:order.index("公司规模") - 1]  # 公司性质
+            company_size = order[order.index('公司规模') + 5: -1].replace("-", '至').strip('\t')  # 公司规模
+            job_des = posistion.select_one("p.text")['title']  # 职位描述
+            job_info = [job_name, company_name, city, salary,edu_level, working_exp, company_type, company_size]
+            search_sql = """select * from job where job_name='{}' and company_name='{}'""".format(
+                job_name, company_name)
+            if cursor.execute(search_sql) != 0:
+                continue
+            else:
+                insert_sql = """insert into job(job_name, company_name, city, salary, edu_level, working_exp, company_type, company_size, job_des) values ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}')""".format(
+                        job_name, company_name, city, salary, edu_level, working_exp, company_type, company_size, job_des)
+                try:
+                    cursor.execute(insert_sql)
+                    db.commit()
+                    print(job_info)
+                except:
+                    continue
+        page += 1
+
+def liepin():
+    session = Session()
+    session.mount('http://', HTTPAdapter(max_retries=2))
+    session.mount('https://', HTTPAdapter(max_retries=2))
+    liepin_url = "https://www.liepin.com/it/"
+    liepin_get = session.get(liepin_url, headers=header)
+    liepin_bs = bs(liepin_get.text, features="html.parser")
+    for posistion in liepin_bs.select(".sidebar li dl dd a"):
+        pager_get = session.get("https://www.liepin.com/zhaopin/?imscid=R000000035&key={}&dqs=110020".format(posistion.text))
+        if search("pagerbar", pager_get.text):
+            pager_bs = bs(pager_get.text, features="html.parser")
+            page_num = pager_bs.select_one("div.pagerbar a.last")['href'].split("&")[-1].split("=")[-1]
+        else:
+            page_num = 0
+        for page in range(int(page_num) + 1):
+            job_page_get = session.get("https://www.liepin.com/zhaopin/?imscid=R000000035&key={}&dqs=110020&curPage={}".format(posistion.text, page))
+            job_page_bs = bs(job_page_get.text, features="html.parser")
+            job_block = job_page_bs.select(".sojob-list .sojob-item-main")
+            for job in job_block:
+                job_name = job.select_one("h3").text.strip()
+                salary = job.select_one("p.condition span.text-warning").text
+                city = "南宁"
+                business_area = job.select_one("p.condition .area").text
+                edu_level = job.select_one("p.condition span.edu").text
+                working_exp = job.select("p.condition span")[-1].text
+                company_name = job.select_one(".company-info p.company-name").text.strip()
+                company_type = job.select_one(".company-info p.field-financing").text.strip()
+                welfare = ''
+                for e in job.select(".company-info p.temptation span"):
+                    welfare += e.text + '/'
+                source = "猎聘"
+                job_href = job.select_one(".job-info h3 a")['href']
+                if not search("http", job_href):
+                    job_href = "https://www.liepin.com" + job_href
+                job_more_get = session.get(job_href)
+                job_more_bs = bs(job_more_get.text, features="html.parser")
+                job_des = job_more_bs.select_one(".job-description .content").text.strip()
+                search_sql = """select * from job where job_name='{}' and company_name='{}'""".format(
+                    job_name, company_name)
+                if cursor.execute(search_sql) != 0:
+                    continue
+                else:
+                    insert_sql = """insert into job (job_name, salary, city, business_area, edu_level, working_exp, company_name, company_type, welfare, job_des, source) values ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}')""".format(job_name, salary, city, business_area, edu_level, working_exp, company_name, company_type, welfare, job_des, source)
+                    cursor.execute(insert_sql)
+                    db.commit()
+                    print(job_name)
+
+
 if __name__ == "__main__":
-    work_crawler()
+    liepin()
+    cursor.close()
+    db.close()
