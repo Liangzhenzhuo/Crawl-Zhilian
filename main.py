@@ -73,13 +73,14 @@ def zhilian_crawler(city, city_num, db_name):
                 except ProgrammingError:
                     continue
 
+# 工资分析函数
 def salary_fenxi(string):
     if search("面议", string) or search("/", string) or search("以下", string) or search("校招", string):
         return None
     else:
         res = findall(r'(\d+(\.\d+)?)',string)
         return res[0][0], res[1][0]
-
+# 图表自动打标签函数
 def autolabel(rects, foi, unit, who):
     if foi == 'float':
         for rect in rects:
@@ -97,27 +98,41 @@ def autolabel(rects, foi, unit, who):
             else:
                 who.text(rect.get_x()+rect.get_width()/2.-0.13, 1.01*height, '%s%s' % (height, unit))
 
+# 绘图函数
 def plt_func(x, y, y2, title):
-    x_lable_font = {'weight': 'bold', 'size': 14}
-    fig = plt.figure(figsize=(13.66, 7.68))
+    x_lable_font = {'weight': 'bold', 'size': 14}   #字体
+    fig = plt.figure(figsize=(13.66, 7.68))     # 图表大小
     plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
     plt.xticks(rotation=45) # x轴文字旋转45度
     plt.title(title)    # 标题
-    sub = plt.subplot(111)
+    sub = plt.subplot(111)      # 生成子图一行一列占第一个
     a = sub.bar(x, y, label='岗位需求', width=-.4, color="lightskyblue", align='edge', edgecolor = 'white')
-    plt.ylabel('就业岗位数量(个)', x_lable_font)
-    sub2 = sub.twinx()
+    plt.ylabel('就业岗位数量(个)', x_lable_font)    # 左边 y 轴 label
+    sub2 = sub.twinx()  # 镜像一份生成右边的y轴
     b = sub2.bar(x, y2, label='收入水平', width=.4, color="yellowgreen", align='edge', edgecolor = 'white')
     autolabel(rects=a, foi='', unit='', who=sub)
     autolabel(rects=b, foi='float', unit='K', who=sub2)
-    plt.xlabel('岗位名称', x_lable_font)
-    plt.ylabel('收入水平(K)', x_lable_font)
-    # plt.margins(.006)
-    fig.legend(bbox_to_anchor=(1,1), bbox_transform=sub.transAxes)
-    plt.savefig(title + ".png")
+    plt.xlabel('岗位名称', x_lable_font)        # x轴label
+    plt.ylabel('收入水平(K)', x_lable_font)     # 右边 y 轴 label
+    # plt.margins(.006)     # margins 内容和图表边框的距离
+    fig.legend(bbox_to_anchor=(1,1), bbox_transform=sub.transAxes)      # 图例
+    plt.savefig(title + ".png")     # 保存图片
 
+# 求平均数函数
+def avg(before, after):
+    if len(after) == 0:
+        return 0
+    else:
+        avg_res = round(before / len(after), 1)
+        return avg_res
 
+# 数据分析函数
 def job_fenxi(db_name):
+    """
+    _s：保存工资数据列表
+    _n：工资数据列表的sum
+    什么都没有的：岗位数量
+    """
     java = 0
     java_n = 0
     java_s = []
@@ -294,61 +309,40 @@ def job_fenxi(db_name):
                 network_s.append(salary[0])
                 network_s.append(salary[1])
 
-    for i in c_s:
-        c_n += float(i)
-    for i in network_s:
-        network_n += float(i)
-    for i in java_s:
-        java_n += float(i)
-    for i in php_s:
-        php_n += float(i)
-    for i in python_s:
-        python_n += float(i)
-    for i in html_s:
-        html_n += float(i)
-    for i in big_data_s:
-        big_data_n += float(i)
-    for i in ios_s:
-        ios_n += float(i)
-    for i in android_s:
-        android_n += float(i)
-    for i in net_s:
-        net_n += float(i)
-    for i in suanfa_s:
-        suanfa_n += float(i)
-    for i in small_app_s:
-        small_app_n += float(i)
-    for i in rgzn_s:
-        rgzn_n += float(i)
-    for i in database_s:
-        database_n += float(i)
-    for i in yunwei_s:
-        yunwei_n += float(i)
-    for i in qianrushi_s:
-        qianrushi_n += float(i)
-    for i in auto_s:
-        auto_n += float(i)
-    for i in system_s:
-        system_n += float(i)
-    for i in node_s:
-        node_n += float(i)
-    for i in qukuailian_s:
-        qukuailian_n += float(i)
-    for i in cloud_s:
-        cloud_n += float(i)
+    c_n = sum(list(map(float, c_s)))
+    network_n = sum(list(map(float, network_s)))
+    java_n = sum(list(map(float, java_s)))
+    php_n = sum(list(map(float, php_s)))
+    python_n = sum(list(map(float, python_s)))
+    html_n = sum(list(map(float, html_s)))
+    big_data_n = sum(list(map(float, big_data_s)))
+    ios_n = sum(list(map(float, ios_s)))
+    android_n = sum(list(map(float, android_s)))
+    net_n = sum(list(map(float, net_s)))
+    suanfa_n = sum(list(map(float, suanfa_s)))
+    small_app_n = sum(list(map(float, small_app_s)))
+    rgzn_n = sum(list(map(float, rgzn_s)))
+    database_n = sum(list(map(float, database_s)))
+    yunwei_n = sum(list(map(float, yunwei_s)))
+    qianrushi_n = sum(list(map(float, qianrushi_s)))
+    auto_n = sum(list(map(float, auto_s)))
+    system_n = sum(list(map(float, system_s)))
+    node_n = sum(list(map(float, node_s)))
+    qukuailian_n = sum(list(map(float, qukuailian_s)))
+    cloud_n = sum(list(map(float, cloud_s)))
     
     # 规定x轴
     x = ['C语言', 'Java', 'PHP', 'Python', 'Web', '数据分析', 'IOS', 'Andriod', '.Net', '算法', '小程序', '人工智能', '数据库', '运维', '嵌入式', '自动化', '系统', 'Node.js', "区块链", '云', '网络']    
     # 规定y轴
     y1 = [c, java, php, python, html, big_data, ios, android, net, suanfa, small_app, rgzn, database, yunwei, qianrushi, auto, system, node, qukuailian, cloud, network]
-    y2 = [round(c_n/len(c_s), 1), round(java_n/len(java_s), 1), round(php_n/len(php_s), 1), round(python_n/len(python_s), 1), round(html_n/len(html_s), 1), round(big_data_n/len(big_data_s), 1), round(ios_n/len(ios_s), 1), round(android_n/len(android_s), 1), round(net_n/len(net_s), 1), round(suanfa_n/len(suanfa_s), 1), round(small_app_n/len(small_app_s), 1), round(rgzn_n/len(rgzn_s), 1), round(database_n/len(database_s), 1), round(yunwei_n/len(yunwei_s), 1), round(qianrushi_n/len(qianrushi_s), 1), round(auto_n/len(auto_s), 1), round(system_n/len(system_s), 1), round(node_n/len(node_s), 1), round(qukuailian_n/len(qukuailian_s), 1), round(cloud_n/len(cloud_s), 1), round(network_n/len(network_s), 1)]
+    y2 = [avg(c_n, c_s), avg(java_n, java_s), avg(php_n, php_s), avg(python_n, python_s), avg(html_n, html_s), avg(big_data_n, big_data_s), avg(ios_n, ios_s), avg(android_n, android_s), avg(net_n, net_s), avg(suanfa_n, suanfa_s), avg(small_app_n, small_app_s), avg(rgzn_n, rgzn_s), avg(database_n, database_s), avg(yunwei_n, yunwei_s), avg(qianrushi_n, qianrushi_s), avg(auto_n, auto_s), avg(system_n, system_s), avg(node_n, node_s), avg(qukuailian_n, qukuailian_s), avg(cloud_n, cloud_s), avg(network_n, network_s)]
     # 排序
     data1=[(type_name, type_count, salary) for type_name, type_count, salary in zip(y1, x, y2)]
     data1.sort(reverse=True)
     count1=[type_name for type_name,type_count, salary in data1]
     name1=[type_count for type_name,type_count, salary in data1]
     salary1=[salary for type_name,type_count, salary in data1]
-    plt_func(x=name1, y=count1, y2=salary1, title="深圳地区IT行业部分技术岗位招聘数量与平均收入水平统计（不完全统计）")
+    plt_func(x=name1, y=count1, y2=salary1, title="南宁地区IT行业部分技术岗位招聘数量与平均收入水平统计（不完全统计）")
 
 if __name__ == "__main__":
     # 爬取函数
