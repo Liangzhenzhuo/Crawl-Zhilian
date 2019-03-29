@@ -49,5 +49,6 @@ def plt_func(x: list, y: list, y2: list, title: str, show: bool, save: bool, sav
     fig.legend(bbox_to_anchor=(1,1), bbox_transform=sub.transAxes)      # 图例
     if save == True:
         plt.savefig("{}/{} - {}.png".format(save_path, title[:title.index("地区")], strftime("%Y-%m-%d", localtime())))     # 保存图片
+        print("图片已成功保存到 {} 目录下".format(save_path))
     if show == True:
         plt.show()
