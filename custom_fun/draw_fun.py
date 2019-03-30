@@ -8,11 +8,13 @@
 import matplotlib.pyplot as plt
 from warnings import filterwarnings
 from time import strftime, localtime
+from pyecharts import Bar, Page
+from random import choice
 # 忽略 matplotlib 的 warning
 filterwarnings(action='ignore',module='.*matplotlib.*')
 
 # 图表自动打标签函数
-def autolabel(rects, foi, unit: str, who):
+def autolabel(rects, foi, unit, who):
     if foi == 'float':
         for rect in rects:
             height = rect.get_height()
@@ -29,8 +31,8 @@ def autolabel(rects, foi, unit: str, who):
             else:
                 who.text(rect.get_x()+rect.get_width()/2.-0.13, 1.01*height, '%s%s' % (height, unit))
 
-# 绘图函数
-def plt_func(x: list, y: list, y2: list, title: str, show: bool, save: bool, save_path: str):
+# plt 绘图函数
+def plt_func(x, y, y2, title, show, save, save_path):
     x_lable_font = {'weight': 'bold', 'size': 14}   #字体
     fig = plt.figure(figsize=(13.66, 7.68))     # 图表大小
     plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
@@ -52,3 +54,29 @@ def plt_func(x: list, y: list, y2: list, title: str, show: bool, save: bool, sav
         print("图片已成功保存到 {} 目录下".format(save_path))
     if show == True:
         plt.show()
+
+# pyechart 绘图函数
+def echart(x1, x2, values, title, save_path):
+    color_list = ['#19CAAD', '#F4606C', '#dc5712', '#55aaad']
+    page = Page(page_title=title)
+    var_name_list = []
+    index = 0
+    for i in values:
+        var_name = "bar{}".format(index)
+        var_name_list.append(var_name)
+        bar = locals()[var_name] = Bar(title=i, width=1150, height=500, title_pos='center')
+        x_attr = "x{}".format(index + 1)
+        bar.add(i, locals()[x_attr], values[i],
+                xaxis_interval=0,
+                xaxis_rotate=45,
+                is_label_show=True,
+                label_color=[choice(color_list)],
+                legend_pos="right",
+                mark_line=['average'],
+                xaxis_name_pos="middle",
+                is_toolbox_show=False,
+                )
+        page.add(bar)
+        index += 1
+    page.render(save_path + "/" + title[:title.index("地区")] + '.html')
+    print("html文件已保存到{}".format(save_path))
