@@ -31,11 +31,15 @@
 
 效果
 ----
- - plt 模式效果图
+ - plt 模式效果展示
 ![](https://blog.tryfang.cn/usr/images/demo.png)
 
- - pyechart 模式效果图
-![](https://blog.tryfang.cn/usr/images/demo2.png)
+ - pyechart 模式效果展示
+ 
+!!!
+<iframe height="260" width="600" frameborder="0" marginwidth="0" marginheight="0" border="0" src="https://blog.tryfang.cn/usr/iframe/shenzhen.html#c7fc0f8e649549809c1df2d55d80dcd3" security="restricted" scrolling='no'></iframe>
+<iframe height="260" width="600" frameborder="0" marginwidth="0" marginheight="0" border="0" src="https://blog.tryfang.cn/usr/iframe/shenzhen.html#9e4cbf4b69ae4e92b5fd677a7d2a2e06" security="restricted" scrolling='no'></iframe>
+!!!
 
 
 --------------
