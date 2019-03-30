@@ -18,6 +18,13 @@ from xpinyin import Pinyin
 from os.path import dirname
 
 
+def get_iframe_from_file(file):
+    f = open(file, "r", encoding="utf-8").read()
+    f_bs = bs(f, features="html.parser")
+    iframe_id = []
+    for i in f_bs.select("body div"):
+        iframe_id.append(i['id'])
+    return iframe_id
 
 # 工资分析函数
 def salary_fenxi(string: str):
@@ -111,7 +118,7 @@ def zhilian_crawler(city_name, city_num, db_name):
     db.close()
 
 # 数据分析函数
-def job_fenxi(city, mode, show=True, save=True, save_path=dirname(__file__)):
+def job_fenxi(city, mode, show=True, save=True, save_path=dirname(__file__), iframe=False, **kwargs):
     """
     _s：保存工资数据列表
     _n：工资数据列表的sum
@@ -260,28 +267,6 @@ def job_fenxi(city, mode, show=True, save=True, save_path=dirname(__file__)):
                 network_s.append(salary[0])
                 network_s.append(salary[1])
 
-    c_n = cout_fun.trans_sum(c_s)
-    network_n = cout_fun.trans_sum(network_s)
-    java_n = cout_fun.trans_sum(java_s)
-    php_n = cout_fun.trans_sum(php_s)
-    python_n = cout_fun.trans_sum(python_s)
-    html_n = cout_fun.trans_sum(html_s)
-    big_data_n = cout_fun.trans_sum(big_data_s)
-    ios_n = cout_fun.trans_sum(ios_s)
-    android_n = cout_fun.trans_sum(android_s)
-    net_n = cout_fun.trans_sum(net_s)
-    suanfa_n = cout_fun.trans_sum(suanfa_s)
-    small_app_n = cout_fun.trans_sum(small_app_s)
-    rgzn_n = cout_fun.trans_sum(rgzn_s)
-    database_n = cout_fun.trans_sum(database_s)
-    yunwei_n = cout_fun.trans_sum(yunwei_s)
-    qianrushi_n = cout_fun.trans_sum(qianrushi_s)
-    auto_n = cout_fun.trans_sum(auto_s)
-    system_n = cout_fun.trans_sum(system_s)
-    node_n = cout_fun.trans_sum(node_s)
-    qukuailian_n = cout_fun.trans_sum(qukuailian_s)
-    cloud_n = cout_fun.trans_sum(cloud_s)
-
     # x轴
     x = []
     # 岗位数量轴
@@ -292,6 +277,7 @@ def job_fenxi(city, mode, show=True, save=True, save_path=dirname(__file__)):
     positions_dict = dict(Counter(positions))
     positions_list = list(Counter(positions))
     for position in positions_list:
+        locals()[position + '_n'] = cout_fun.trans_sum(locals()[position + '_s'])
         x.append(locals()[position + '_c'][0])
         count_y.append(positions_dict[position])
         salary_y.append(cout_fun.avg(locals()[position + '_n'], locals()[position + '_s']))
@@ -308,7 +294,18 @@ def job_fenxi(city, mode, show=True, save=True, save_path=dirname(__file__)):
         x2 = [type_salary for type_name, type_salary in data2]
         y2 = [type_name for type_name, type_salary in data2]
         values = {"岗位数量（个）": y1, "收入水平（K）": y2}
-        draw_fun.echart(x1=x1, x2=x2, values=values, title="{}地区IT行业部分技术岗位某招聘网站岗位数量与平均收入水平(不完全统计) ".format(city), save_path=save_path)
+        if iframe == True:
+            draw = draw_fun.echart(x1=x1, x2=x2, values=values, title="{}地区IT行业部分技术岗位某招聘网站岗位数量与平均收入水平(不完全统计) ".format(city), save_path=save_path, iframe=iframe, iframe_width=kwargs['iframe_width'], iframe_height=kwargs['iframe_height'])
+            iframe_id = get_iframe_from_file(draw['all'])
+            with open(draw['dir'] + "/iframe.html", "w+", encoding="utf-8") as f:
+                for i in iframe_id:
+                    iframe_element = "<iframe height={} width={} frameborder='0' marginwidth='0' marginheight='0' border='0' src='./{}#{}' security='restricted' scrolling='no'></iframe>\n".format(kwargs['iframe_height'], kwargs['iframe_width'], draw['file'], i)
+                    f.write(iframe_element)
+                f.close()
+            print("文件已保存到{}".format(draw['dir']))
+        else:
+            draw_fun.echart(x1=x1, x2=x2, values=values, title="{}地区IT行业部分技术岗位某招聘网站岗位数量与平均收入水平(不完全统计) ".format(city), save_path=save_path)
+
     elif mode == 'plt':
         # 排序
         data1 = [(type_name, type_count, salary) for type_name, type_count, salary in zip(count_y, x, salary_y)]
@@ -317,5 +314,6 @@ def job_fenxi(city, mode, show=True, save=True, save_path=dirname(__file__)):
         name1 = [type_count for type_name, type_count, salary in data1]
         salary1 = [salary for type_name, type_count, salary in data1]
         draw_fun.plt_func(x=name1, y=count1, y2=salary1, title="{}地区IT行业部分技术岗位某招聘网站岗位数量与平均收入水平(不完全统计) ".format(city), show=show, save=save, save_path=save_path)
+        
     cursor.close()
     db.close()
