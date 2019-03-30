@@ -29,12 +29,16 @@
 
 -------------------------------------------------------
 
-**效果**
+效果
 ----
-
+ - plt 模式效果图
 ![](https://blog.tryfang.cn/usr/images/demo.png)
 
------
+ - pyechart 模式效果图
+![](https://blog.tryfang.cn/usr/images/demo2.png)
+
+
+--------------
 
 
 个人博客:[**https://blog.tryfang.cn**][1] 欢迎各位小伙伴前来讨论
