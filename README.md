@@ -24,17 +24,17 @@
 -----------------------
 更新日志
 -------
- - 2019年3月31日：添加pyechart可视化方式，有利于后期放iframe到网页上
+ - 2019年3月31日：添加pyechart可视化方式，支持自动生成html文件以及自动生成iframe标签，为后期将分析结果嵌入网页内等操作提供更便捷的代码
 
 
 -------------------------------------------------------
 
 效果
 ----
- - plt 模式效果图
+ - plt 模式效果展示
 ![](https://blog.tryfang.cn/usr/images/demo.png)
 
- - pyechart 模式效果图
+ - pyechart 模式效果图	 - pyechart 模式效果展示
 ![](https://blog.tryfang.cn/usr/images/demo2.png)
 
 
