@@ -38,11 +38,4 @@
 ![](https://blog.tryfang.cn/usr/images/demo2.png)
 
 
---------------
-
-
-个人博客:[**https://blog.tryfang.cn**][1] 欢迎各位小伙伴前来讨论
--------------------------------------------------------
-
-
 [1]:https://blog.tryfang.cn
